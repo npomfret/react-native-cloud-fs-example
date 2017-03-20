@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView} from "react-native";
+import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -60,6 +60,12 @@ export default class RNCloudFSExample extends Component {
       <ScrollView contentContainerStyle={{padding: 8}}>
         <StatusBar hidden={true}/>
 
+        <View style={{alignItems: 'center', backgroundColor: '#b7d2b1', padding: 4, borderRadius: 4, marginBottom: 4}}>
+          <Text style={styles.heading}>operation: list files</Text>
+
+          <FileBrowser />
+        </View>
+
         <View style={{alignItems: 'center', backgroundColor: '#a9d2c7', padding: 4, borderRadius: 4, marginBottom: 4}}>
           <Text style={styles.heading}>operation: create file</Text>
 
@@ -88,12 +94,6 @@ export default class RNCloudFSExample extends Component {
             sourcePath={{uri: this.state.imagePath}}
             targetPath={"image-demo/" + this.state.imageFilename}
             heading="internal url"/>
-        </View>
-
-        <View style={{alignItems: 'center', backgroundColor: '#b7d2b1', padding: 4, borderRadius: 4, marginBottom: 4}}>
-          <Text style={styles.heading}>operation: list files</Text>
-
-          <FileBrowser />
         </View>
 
       </ScrollView>
@@ -155,17 +155,19 @@ class FileBrowser extends Component {
 
   async _updateFiles(currentWorkingDirectory) {
     try {
+      this.setState({dirData: null});
       console.log("listfiles", currentWorkingDirectory);
       const output = await RNCloudFs.listFiles(currentWorkingDirectory);
       this.setState({dirData: output});
     } catch (e) {
       console.warn("list files failed", e);
+      this._updateFiles(".");
     }
   }
 
   render() {
-    if(!this.state.dirData) {
-      return <View/>
+    if (!this.state.dirData) {
+      return <View><ActivityIndicator /></View>
     }
 
     const files = [{name: "..", isDirectory: true}].concat(this.state.dirData.files);
@@ -174,7 +176,7 @@ class FileBrowser extends Component {
       <View style={styles.container}>
 
         <View style={{flex: 1}}>
-          <Text style={{textAlign: 'center', marginBottom: 8}}>dir: {this.state.dirData.path}</Text>
+          <Text style={{textAlign: 'center', marginBottom: 8, fontStyle: 'italic'}}>{this.state.dirData.path}</Text>
 
           {
             files.map((file) => {
@@ -182,10 +184,9 @@ class FileBrowser extends Component {
                 {
                   file.isDirectory ?
                     <TouchableOpacity onPress={() => this._updateFiles(this.state.dirData.path + "/" + file.name)}>
-
-                      <View style={{flexDirection: 'row'}}>
-                      <Text style={{fontSize: 14, marginRight: 4, color: 'grey'}}>dir: </Text>
-                      <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
+                      <View style={{flexDirection: 'row', flex: 1}}>
+                        <Text style={{fontSize: 14, marginRight: 4, color: 'grey'}}>dir: </Text>
+                        <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
                       </View>
                     </TouchableOpacity> :
 

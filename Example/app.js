@@ -38,7 +38,7 @@ export default class RNCloudFSExample extends Component {
   }
 
   async _createFile() {
-    await RNCloudFs.createFile("/foo/bar/shoe" + Math.random() + ".txt", "shoes!");
+    await RNCloudFs.createFile("/foo/bar/shoe_" + Math.random() + "_.txt", "shoes!");
   }
 
   static _getPhoto() {
@@ -183,7 +183,11 @@ class FileBrowser extends Component {
                 {
                   file.isDirectory ?
                     <TouchableOpacity onPress={() => this._updateFiles(this.state.dirData.path + "/" + file.name)}>
+
+                      <View style={{flexDirection: 'row'}}>
+                      <Text style={{fontSize: 14, marginRight: 4, color: 'grey'}}>dir: </Text>
                       <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
+                      </View>
                     </TouchableOpacity> :
 
                     <View style={{flexDirection: 'row'}}>

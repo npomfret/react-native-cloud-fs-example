@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar} from "react-native";
+import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -17,28 +17,24 @@ export default class RNCloudFSExample extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const tmpFilePath = RNFS.DocumentDirectoryPath + '/test.txt';
 
-    RNFS.writeFile(tmpFilePath, 'This is a test file ' + new Date().toISOString(), 'utf8')
-      .then(() => {
-        this.setState({
-          tmpFilePath: tmpFilePath,
-          filename: "my-file.txt"
-        })
-      });
+    await RNFS.writeFile(tmpFilePath, 'This is a test file ' + new Date().toISOString(), 'utf8');
+    this.setState({
+      tmpFilePath: tmpFilePath,
+      filename: "my-file.txt"
+    });
 
-    RNCloudFSExample._getPhoto()
-      .then((res) => {
-        if (res.edges.length > 0) {
-          const imageFilename = res.edges[0].node.image.filename;//iOS only
+    const res = await RNCloudFSExample._getPhoto();
+    if (res.edges.length > 0) {
+      const imageFilename = res.edges[0].node.image.filename;//iOS only
 
-          this.setState({
-            imagePath: res.edges[0].node.image.uri,
-            imageFilename: imageFilename ? imageFilename : "image.jpeg"
-          });
-        }
+      this.setState({
+        imagePath: res.edges[0].node.image.uri,
+        imageFilename: imageFilename ? imageFilename : "image.jpeg"
       });
+    }
   }
 
   static _getPhoto() {
@@ -57,38 +53,45 @@ export default class RNCloudFSExample extends Component {
 
   render() {
     return (
-      <View style={{flex: 1, padding: 8}}>
-        <StatusBar hidden={true} />
+      <ScrollView contentContainerStyle={{flex: 1, padding: 8}}>
+        <StatusBar hidden={true}/>
 
-        <View style={{alignItems: 'center', backgroundColor: '#d2ceab', padding: 4, borderRadius: 4}}>
+        <View style={{alignItems: 'center', backgroundColor: '#d2ceab', padding: 4, borderRadius: 4, marginBottom: 4}}>
           <Text style={styles.heading}>operation: copy to cloud</Text>
 
-          <Container
+          <SaveFileContainer
             sourcePath={{path: this.state.tmpFilePath}}
             targetPath={"absolute-path-demo/" + this.state.filename}
             heading="absolute path"/>
 
-          <Container
+          <SaveFileContainer
             sourcePath={{uri: "file:/" + this.state.tmpFilePath}}
             targetPath={"file-url-demo/" + this.state.filename}
             heading="file url"/>
 
-          <Container
+          <SaveFileContainer
             sourcePath={{uri: "https://raw.githubusercontent.com/npomfret/react-native-cloud-fs/master/README.md"}}
             targetPath={"web-url-demo/README.md"}
             heading="url"/>
 
-          <Container
+          <SaveFileContainer
             sourcePath={{uri: this.state.imagePath}}
             targetPath={"image-demo/" + this.state.imageFilename}
             heading="internal url"/>
         </View>
-      </View>
+
+        <View style={{alignItems: 'center', backgroundColor: '#b7d2b1', padding: 4, borderRadius: 4, marginBottom: 4}}>
+          <Text style={styles.heading}>operation: list files</Text>
+
+          <FileBrowser />
+        </View>
+
+      </ScrollView>
     );
   }
 }
 
-class Container extends Component {
+class SaveFileContainer extends Component {
   constructor(props) {
     super(props);
 
@@ -116,7 +119,9 @@ class Container extends Component {
     return <View style={styles.container}>
       <View style={{flex: 1}}>
         <Text style={styles.heading}>{this.props.heading}</Text>
+
         <TextInput underlineColorAndroid="transparent" style={styles.url} value={this.props.sourcePath.uri ? this.props.sourcePath.uri : this.props.sourcePath.path}/>
+
         <View style={{alignItems: 'center'}}>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
             <TouchableOpacity onPress={() => this._saveFile(this.props.sourcePath, this.props.targetPath)}><Text style={styles.button}>save to cloud</Text></TouchableOpacity>
@@ -128,6 +133,64 @@ class Container extends Component {
   }
 }
 
+class FileBrowser extends Component {
+  constructor(props) {
+    super(props);
+  }
+
+  componentWillMount() {
+    this.setState({
+      currentWorkingDirectory: null,
+      files: []
+    });
+  }
+
+  componentDidMount() {
+    this.setState({
+      currentWorkingDirectory: ".",
+    });
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    const currentWorkingDirectory = this.state.currentWorkingDirectory;
+
+    if (prevState.currentWorkingDirectory !== currentWorkingDirectory) {
+      const files = await RNCloudFs.listFiles(currentWorkingDirectory);
+      console.log("listfiles", currentWorkingDirectory, files);
+      this.setState({files: [{name: "..", isDirectory: true}].concat(files)});
+    }
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+
+        <View style={{flex: 1}}>
+          <Text style={{textAlign: 'center'}}>dir: {this.state.currentWorkingDirectory}</Text>
+
+          {
+            this.state.files.map((file) => {
+              return <View style={{flexDirection: 'row', marginBottom: 8}} key={file.name}>
+                {
+                  file.isDirectory ?
+                    <TouchableOpacity onPress={() => this.setState({currentWorkingDirectory: this.state.currentWorkingDirectory + "/" + file.name})}>
+                      <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
+                    </TouchableOpacity> :
+
+                    <View style={{flexDirection: 'row'}}>
+                      {<Text style={{fontSize: 14, marginRight: 4}}>{file.name}</Text>}
+                      <Text style={{fontSize: 10, marginRight: 4}}>{file.size / 1024}kb</Text>
+                    </View>
+                }
+              </View>
+            })
+          }
+        </View>
+      </View>
+    )
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
@@ -135,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginBottom: 8,
     flexDirection: 'row',
-    padding: 4
+    padding: 4,
   },
   heading: {
     fontSize: 12,

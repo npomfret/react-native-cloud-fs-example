@@ -114,15 +114,14 @@ class SaveFileContainer extends Component {
     heading: React.PropTypes.string.isRequired,
   };
 
-  _saveFile(sourcePath, targetPath) {
+  async _saveFile(sourcePath, targetPath) {
     const mimeType = null;//for android only - and if null the java code will take a guess
-    return RNCloudFs.copyToCloud(sourcePath, targetPath, mimeType)
-      .then((res) => {
-        console.log("it worked", res);
-      })
-      .catch((err) => {
-        console.warn("it failed", err);
-      })
+    try {
+      const res = RNCloudFs.copyToCloud(sourcePath, targetPath + "_" + Math.random(), mimeType);
+      console.log("it worked", res);
+    } catch (e) {
+      console.warn("it failed", e);
+    }
   }
 
   render() {

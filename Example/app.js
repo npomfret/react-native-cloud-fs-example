@@ -37,6 +37,10 @@ export default class RNCloudFSExample extends Component {
     }
   }
 
+  async _createFile() {
+    await RNCloudFs.createFile("/foo/bar/shoe" + Math.random() + ".txt", "shoes!");
+  }
+
   static _getPhoto() {
     const fetchParams = {
       first: 1,
@@ -53,8 +57,14 @@ export default class RNCloudFSExample extends Component {
 
   render() {
     return (
-      <ScrollView contentContainerStyle={{flex: 1, padding: 8}}>
+      <ScrollView contentContainerStyle={{padding: 8}}>
         <StatusBar hidden={true}/>
+
+        <View style={{alignItems: 'center', backgroundColor: '#a9d2c7', padding: 4, borderRadius: 4, marginBottom: 4}}>
+          <Text style={styles.heading}>operation: create file</Text>
+
+          <TouchableOpacity onPress={() => this._createFile()}><Text style={styles.button}>create</Text></TouchableOpacity>
+        </View>
 
         <View style={{alignItems: 'center', backgroundColor: '#d2ceab', padding: 4, borderRadius: 4, marginBottom: 4}}>
           <Text style={styles.heading}>operation: copy to cloud</Text>
@@ -136,31 +146,21 @@ class SaveFileContainer extends Component {
 class FileBrowser extends Component {
   constructor(props) {
     super(props);
-  }
 
-  componentWillMount() {
-    this.setState({
-      currentWorkingDirectory: null,
-    });
+    this.state = {};
   }
 
   componentDidMount() {
-    this.setState({
-      currentWorkingDirectory: ".",
-    });
+    this._updateFiles(".");
   }
 
-  async componentDidUpdate(prevProps, prevState) {
-    const currentWorkingDirectory = this.state.currentWorkingDirectory;
-
-    if (prevState.currentWorkingDirectory !== currentWorkingDirectory) {
-      try {
-        const output = await RNCloudFs.listFiles(currentWorkingDirectory);
-        console.log("listfiles", currentWorkingDirectory, output);
-        this.setState({dirData: output});
-      } catch (e) {
-        console.warn("list files failed", e);
-      }
+  async _updateFiles(currentWorkingDirectory) {
+    try {
+      console.log("listfiles", currentWorkingDirectory);
+      const output = await RNCloudFs.listFiles(currentWorkingDirectory);
+      this.setState({dirData: output});
+    } catch (e) {
+      console.warn("list files failed", e);
     }
   }
 
@@ -182,7 +182,7 @@ class FileBrowser extends Component {
               return <View style={{flexDirection: 'row', marginBottom: 8}} key={file.name}>
                 {
                   file.isDirectory ?
-                    <TouchableOpacity onPress={() => this.setState({currentWorkingDirectory: this.state.currentWorkingDirectory + "/" + file.name})}>
+                    <TouchableOpacity onPress={() => this._updateFiles(this.state.dirData.path + "/" + file.name)}>
                       <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
                     </TouchableOpacity> :
 

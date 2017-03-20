@@ -20,6 +20,11 @@
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
+#ifdef DEBUG
+  [[RCTBundleURLProvider sharedSettings] setJsLocation:@"192.168.1.64"];
+  //[[RCTBundleURLProvider sharedSettings] setJsLocation:@"localhost"];
+#endif
+
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"RNCloudFSExample"
                                                initialProperties:nil

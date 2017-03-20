@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll} from "react-native";
+import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -57,28 +57,32 @@ export default class RNCloudFSExample extends Component {
 
   render() {
     return (
-      <View style={{flex: 1, alignItems: 'center', padding: 8}}>
-        <Text style={[styles.heading, {marginVertical: 16}]}>Copy URL to cloud</Text>
+      <View style={{flex: 1, padding: 8}}>
+        <StatusBar hidden={true} />
 
-        <Container
-          sourcePath={{path: this.state.tmpFilePath}}
-          targetPath={"absolute-path-demo/" + this.state.filename}
-          heading="absolute path"/>
+        <View style={{alignItems: 'center', backgroundColor: '#d2ceab', padding: 4, borderRadius: 4}}>
+          <Text style={styles.heading}>operation: copy to cloud</Text>
 
-        <Container
-          sourcePath={{uri: "file:/" + this.state.tmpFilePath}}
-          targetPath={"file-url-demo/" + this.state.filename}
-          heading="file url"/>
+          <Container
+            sourcePath={{path: this.state.tmpFilePath}}
+            targetPath={"absolute-path-demo/" + this.state.filename}
+            heading="absolute path"/>
 
-        <Container
-          sourcePath={{uri: "https://raw.githubusercontent.com/npomfret/react-native-cloud-fs/master/README.md"}}
-          targetPath={"web-url-demo/README.md"}
-          heading="url"/>
+          <Container
+            sourcePath={{uri: "file:/" + this.state.tmpFilePath}}
+            targetPath={"file-url-demo/" + this.state.filename}
+            heading="file url"/>
 
-        <Container
-          sourcePath={{uri: this.state.imagePath}}
-          targetPath={"image-demo/" + this.state.imageFilename}
-          heading="internal url"/>
+          <Container
+            sourcePath={{uri: "https://raw.githubusercontent.com/npomfret/react-native-cloud-fs/master/README.md"}}
+            targetPath={"web-url-demo/README.md"}
+            heading="url"/>
+
+          <Container
+            sourcePath={{uri: this.state.imagePath}}
+            targetPath={"image-demo/" + this.state.imageFilename}
+            heading="internal url"/>
+        </View>
       </View>
     );
   }

@@ -61,19 +61,19 @@ export default class RNCloudFSExample extends Component {
         <StatusBar hidden={true}/>
 
         <View style={{alignItems: 'center', backgroundColor: '#b7d2b1', padding: 4, borderRadius: 4, marginBottom: 4}}>
-          <Text style={styles.heading}>operation: list files</Text>
+          <Text style={styles.heading}>operation: RNCloudFs.listFiles</Text>
 
           <FileBrowser />
         </View>
 
         <View style={{alignItems: 'center', backgroundColor: '#a9d2c7', padding: 4, borderRadius: 4, marginBottom: 4}}>
-          <Text style={styles.heading}>operation: create file</Text>
+          <Text style={styles.heading}>operation: RNCloudFs.createFile</Text>
 
           <TouchableOpacity onPress={() => this._createFile()}><Text style={styles.button}>create</Text></TouchableOpacity>
         </View>
 
         <View style={{alignItems: 'center', backgroundColor: '#d2ceab', padding: 4, borderRadius: 4, marginBottom: 4}}>
-          <Text style={styles.heading}>operation: copy to cloud</Text>
+          <Text style={styles.heading}>operation: RNCloudFs.copyToCloud</Text>
 
           <SaveFileContainer
             sourcePath={{path: this.state.tmpFilePath}}

@@ -141,7 +141,6 @@ class FileBrowser extends Component {
   componentWillMount() {
     this.setState({
       currentWorkingDirectory: null,
-      files: []
     });
   }
 
@@ -155,21 +154,31 @@ class FileBrowser extends Component {
     const currentWorkingDirectory = this.state.currentWorkingDirectory;
 
     if (prevState.currentWorkingDirectory !== currentWorkingDirectory) {
-      const files = await RNCloudFs.listFiles(currentWorkingDirectory);
-      console.log("listfiles", currentWorkingDirectory, files);
-      this.setState({files: [{name: "..", isDirectory: true}].concat(files)});
+      try {
+        const output = await RNCloudFs.listFiles(currentWorkingDirectory);
+        console.log("listfiles", currentWorkingDirectory, output);
+        this.setState({dirData: output});
+      } catch (e) {
+        console.warn("list files failed", e);
+      }
     }
   }
 
   render() {
+    if(!this.state.dirData) {
+      return <View/>
+    }
+
+    const files = [{name: "..", isDirectory: true}].concat(this.state.dirData.files);
+
     return (
       <View style={styles.container}>
 
         <View style={{flex: 1}}>
-          <Text style={{textAlign: 'center'}}>dir: {this.state.currentWorkingDirectory}</Text>
+          <Text style={{textAlign: 'center', marginBottom: 8}}>dir: {this.state.dirData.path}</Text>
 
           {
-            this.state.files.map((file) => {
+            files.map((file) => {
               return <View style={{flexDirection: 'row', marginBottom: 8}} key={file.name}>
                 {
                   file.isDirectory ?

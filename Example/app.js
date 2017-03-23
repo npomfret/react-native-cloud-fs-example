@@ -38,7 +38,12 @@ export default class RNCloudFSExample extends Component {
   }
 
   async _createFile() {
-    await RNCloudFs.createFile("/foo/bar/shoe_" + Math.random() + "_.txt", "shoes!");
+    const path = "/foo/bar/shoe_" + Math.random() + "_.txt";
+    try {
+      await RNCloudFs.createFile(path, "shoes!");
+    } catch (err) {
+      console.warn("failed to create", path, err);
+    }
   }
 
   static _getPhoto() {
@@ -105,7 +110,7 @@ class SaveFileContainer extends Component {
   constructor(props) {
     super(props);
 
-    this._saveFile = this._saveFile.bind(this);
+    this._copyToCloud = this._copyToCloud.bind(this);
   }
 
   static propTypes = {
@@ -114,7 +119,7 @@ class SaveFileContainer extends Component {
     heading: React.PropTypes.string.isRequired,
   };
 
-  async _saveFile(sourcePath, targetPath) {
+  async _copyToCloud(sourcePath, targetPath) {
     const mimeType = null;//for android only - and if null the java code will take a guess
     try {
       const res = RNCloudFs.copyToCloud(sourcePath, targetPath + "_" + Math.random(), mimeType);
@@ -133,7 +138,7 @@ class SaveFileContainer extends Component {
 
         <View style={{alignItems: 'center'}}>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <TouchableOpacity onPress={() => this._saveFile(this.props.sourcePath, this.props.targetPath)}><Text style={styles.button}>save to cloud</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => this._copyToCloud(this.props.sourcePath, this.props.targetPath)}><Text style={styles.button}>save to cloud</Text></TouchableOpacity>
           </View>
           <Text style={[styles.heading, {fontStyle: 'italic'}]}>({this.props.targetPath})</Text>
         </View>

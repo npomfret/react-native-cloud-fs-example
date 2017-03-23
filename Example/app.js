@@ -156,9 +156,11 @@ class FileBrowser extends Component {
   async _updateFiles(currentWorkingDirectory) {
     try {
       this.setState({dirData: null});
-      console.log("listfiles", currentWorkingDirectory);
+
       const output = await RNCloudFs.listFiles(currentWorkingDirectory);
       this.setState({dirData: output});
+
+      output.files.forEach((file) => console.log(file));
     } catch (e) {
       console.warn("list files failed", e);
       this._updateFiles(".");

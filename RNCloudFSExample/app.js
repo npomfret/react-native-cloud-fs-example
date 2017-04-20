@@ -98,7 +98,7 @@ export default class RNCloudFSExample extends Component {
           <SaveFileContainer
             sourcePath={{uri: this.state.imagePath}}
             targetPath={"image-demo/" + this.state.imageFilename}
-            heading="internal url"/>
+            heading="os specific url"/>
         </View>
 
       </ScrollView>

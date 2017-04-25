@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, Switch, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator} from "react-native";
+import {AppRegistry, Switch, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator, Button} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -117,6 +117,10 @@ export default class RNCloudFSExample extends Component {
             targetPath={"image-demo/" + this.state.imageFilename}
             scope={this.state.scope}
             heading="os specific url"/>
+
+          {
+            Platform.OS === 'android' ? <Button onPress={() => RNCloudFs.reset()} title="reset android auth"/> : null
+          }
         </View>
 
       </ScrollView>

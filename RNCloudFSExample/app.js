@@ -158,11 +158,13 @@ class SaveFileContainer extends Component {
       <View style={{flex: 1}}>
         <Text style={styles.heading}>{this.props.heading}</Text>
 
-        <TextInput underlineColorAndroid="transparent" style={styles.url} value={this.props.sourcePath.uri ? this.props.sourcePath.uri : this.props.sourcePath.path}/>
+        <UrlField value={this.props.sourcePath.uri ? this.props.sourcePath.uri : this.props.sourcePath.path}/>
 
         <View style={{alignItems: 'center'}}>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <TouchableOpacity onPress={() => this._copyToCloud(this.props.sourcePath, this.props.targetPath)}><Text style={styles.button}>save to cloud</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => this._copyToCloud(this.props.sourcePath, this.props.targetPath)}>
+              <Text style={styles.button}>save to cloud</Text>
+            </TouchableOpacity>
           </View>
           <Text style={[styles.heading, {fontStyle: 'italic'}]}>({this.props.targetPath})</Text>
         </View>
@@ -189,8 +191,8 @@ class FileBrowser extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const  dirData = this.state.dirData;
-    if(dirData && prevProps.scope !== this.props.scope) {
+    const dirData = this.state.dirData;
+    if (dirData && prevProps.scope !== this.props.scope) {
       this._listFiles(".");
     }
   }
@@ -250,6 +252,46 @@ class FileBrowser extends Component {
   }
 }
 
+class UrlField extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      text: this.props.value,
+      height: 25
+    };
+
+    this.onTextChange = this.onTextChange.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(prevProps.value !== this.props.value) {
+      this.setState({text: this.props.value});
+    }
+  }
+
+  onTextChange(event) {
+    const {contentSize, text} = event.nativeEvent;
+
+    this.setState({
+      text: text,
+      height: contentSize.height > 100 ? 100 : contentSize.height
+    });
+  }
+
+  render() {
+    return (
+      <TextInput
+        multiline={true}
+        underlineColorAndroid="transparent"
+        style={[styles.textArea, {height: this.state.height}]}
+        onChange={this.onTextChange}
+        value={this.state.text}
+      />
+    );
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
@@ -263,14 +305,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'left'
   },
-  url: {
-    paddingVertical: 0,
-    height: 20,
+  textArea: {
     borderColor: 'gray',
     borderWidth: 1,
     fontSize: 8,
     paddingHorizontal: 2,
-    color: 'blue'
+    paddingVertical: 0,
+    color: 'blue',
+    backgroundColor: '#eeeeee'
   },
   button: {
     margin: 2,

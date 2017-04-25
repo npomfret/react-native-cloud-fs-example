@@ -129,6 +129,13 @@ class SaveFileContainer extends Component {
     super(props);
 
     this._copyToCloud = this._copyToCloud.bind(this);
+    this.state = {
+      fileExists: false
+    }
+  }
+
+  componentWillMount() {
+    this._update();
   }
 
   static propTypes = {
@@ -138,16 +145,26 @@ class SaveFileContainer extends Component {
     heading: React.PropTypes.string.isRequired,
   };
 
-  async _copyToCloud(sourcePath, targetPath) {
+  async _update() {
+    const exists = await RNCloudFs.fileExists({targetPath: this.props.targetPath, scope: this.props.scope});
+    this.setState({fileExists: exists})
+  }
+
+  async _copyToCloud() {
+    const sourcePath = this.props.sourcePath;
+    const targetPath = this.props.targetPath;
+
     const mimeType = null;//for android only - and if null the java code will take a guess
     try {
       const res = RNCloudFs.copyToCloud({
         sourcePath,
-        targetPath: targetPath + "_" + Math.random(),
+        targetPath: targetPath,
         mimeType,
         scope: this.props.scope
       });
       console.log("it worked", res);
+
+      this._update();
     } catch (e) {
       console.warn("it failed", e);
     }
@@ -162,11 +179,12 @@ class SaveFileContainer extends Component {
 
         <View style={{alignItems: 'center'}}>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <TouchableOpacity onPress={() => this._copyToCloud(this.props.sourcePath, this.props.targetPath)}>
+            <TouchableOpacity onPress={() => this._copyToCloud()}>
               <Text style={styles.button}>save to cloud</Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.heading, {fontStyle: 'italic'}]}>({this.props.targetPath})</Text>
+          <Text style={[styles.heading, {fontStyle: 'italic'}]}>target: {this.props.targetPath}</Text>
+          <Text style={[styles.heading, {}]}>target file exists: {this.state.fileExists.toString()}</Text>
         </View>
       </View>
     </View>

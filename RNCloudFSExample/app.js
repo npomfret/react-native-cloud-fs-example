@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator} from "react-native";
+import {AppRegistry, Switch, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -13,7 +13,8 @@ export default class RNCloudFSExample extends Component {
       tmpFilePath: "",
       filename: "",
       imageFilename: "",
-      imagePath: ""
+      imagePath: "",
+      scope: 'visible'
     }
   }
 
@@ -38,9 +39,13 @@ export default class RNCloudFSExample extends Component {
   }
 
   async _createFile() {
-    const path = "/foo/bar/shoe_" + Math.random() + "_.txt";
+    const path = "/foo/bar/some_file_" + Math.random() + "_.txt";
     try {
-      await RNCloudFs.createFile(path, "shoes!");
+      await RNCloudFs.createFile({
+        targetPath: path,
+        content: "some file content",
+        scope: this.state.scope
+      });
     } catch (err) {
       console.warn("failed to create", path, err);
     }
@@ -65,10 +70,19 @@ export default class RNCloudFSExample extends Component {
       <ScrollView contentContainerStyle={{padding: 8}}>
         <StatusBar hidden={true}/>
 
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={styles.heading}>scope:</Text>
+          <Switch
+            onValueChange={(value) => this.setState({scope: value ? "visible" : 'hidden'})}
+            style={{marginBottom: 10}}
+            value={this.state.scope === 'visible'}/>
+          <Text style={styles.heading}>{this.state.scope === 'visible' ? "visible files" : 'hidden files'}</Text>
+        </View>
+
         <View style={{alignItems: 'center', backgroundColor: '#b7d2b1', padding: 4, borderRadius: 4, marginBottom: 4}}>
           <Text style={styles.heading}>operation: RNCloudFs.listFiles</Text>
 
-          <FileBrowser />
+          <FileBrowser scope={this.state.scope}/>
         </View>
 
         <View style={{alignItems: 'center', backgroundColor: '#a9d2c7', padding: 4, borderRadius: 4, marginBottom: 4}}>
@@ -83,21 +97,25 @@ export default class RNCloudFSExample extends Component {
           <SaveFileContainer
             sourcePath={{path: this.state.tmpFilePath}}
             targetPath={"absolute-path-demo/" + this.state.filename}
+            scope={this.state.scope}
             heading="absolute path"/>
 
           <SaveFileContainer
             sourcePath={{uri: "file:/" + this.state.tmpFilePath}}
             targetPath={"file-url-demo/" + this.state.filename}
+            scope={this.state.scope}
             heading="file url"/>
 
           <SaveFileContainer
             sourcePath={{uri: "https://raw.githubusercontent.com/npomfret/react-native-cloud-fs/master/README.md"}}
             targetPath={"web-url-demo/README.md"}
+            scope={this.state.scope}
             heading="url"/>
 
           <SaveFileContainer
             sourcePath={{uri: this.state.imagePath}}
             targetPath={"image-demo/" + this.state.imageFilename}
+            scope={this.state.scope}
             heading="os specific url"/>
         </View>
 
@@ -116,13 +134,19 @@ class SaveFileContainer extends Component {
   static propTypes = {
     sourcePath: React.PropTypes.object.isRequired,
     targetPath: React.PropTypes.string.isRequired,
+    scope: React.PropTypes.string.isRequired,
     heading: React.PropTypes.string.isRequired,
   };
 
   async _copyToCloud(sourcePath, targetPath) {
     const mimeType = null;//for android only - and if null the java code will take a guess
     try {
-      const res = RNCloudFs.copyToCloud(sourcePath, targetPath + "_" + Math.random(), mimeType);
+      const res = RNCloudFs.copyToCloud({
+        sourcePath,
+        targetPath: targetPath + "_" + Math.random(),
+        mimeType,
+        scope: this.props.scope
+      });
       console.log("it worked", res);
     } catch (e) {
       console.warn("it failed", e);
@@ -151,18 +175,34 @@ class FileBrowser extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      dirData: null
+    };
   }
+
+  static propTypes = {
+    scope: React.PropTypes.string.isRequired,
+  };
 
   componentDidMount() {
-    this._updateFiles(".");
+    this._listFiles(".");
   }
 
-  async _updateFiles(currentWorkingDirectory) {
+  componentDidUpdate(prevProps, prevState) {
+    const  dirData = this.state.dirData;
+    if(dirData && prevProps.scope !== this.props.scope) {
+      this._listFiles(".");
+    }
+  }
+
+  async _listFiles(currentWorkingDirectory) {
     try {
       this.setState({dirData: null});
 
-      const output = await RNCloudFs.listFiles(currentWorkingDirectory);
+      const output = await RNCloudFs.listFiles({
+        targetPath: currentWorkingDirectory,
+        scope: this.props.scope
+      });
       this.setState({dirData: output});
 
       output.files.forEach((file) => console.log(file));
@@ -189,7 +229,7 @@ class FileBrowser extends Component {
               return <View style={{flexDirection: 'row', marginBottom: 8}} key={file.name}>
                 {
                   file.isDirectory ?
-                    <TouchableOpacity onPress={() => this._updateFiles(this.state.dirData.path + "/" + file.name)}>
+                    <TouchableOpacity onPress={() => this._listFiles(this.state.dirData.path + "/" + file.name)}>
                       <View style={{flexDirection: 'row', flex: 1}}>
                         <Text style={{fontSize: 14, marginRight: 4, color: 'grey'}}>dir: </Text>
                         <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>

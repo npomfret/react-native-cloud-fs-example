@@ -1,7 +1,7 @@
 'use strict';
 
 import React, {Component} from "react";
-import {AppRegistry, Switch, TouchableOpacity, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator, Button} from "react-native";
+import {AppRegistry, Switch, TouchableOpacity, Linking, StyleSheet, Text, View, TextInput, Platform, CameraRoll, StatusBar, ScrollView, ActivityIndicator, Button} from "react-native";
 import RNFS from "react-native-fs";
 import RNCloudFs from "react-native-cloud-fs";
 
@@ -36,6 +36,7 @@ export default class RNCloudFSExample extends Component {
         imageFilename: imageFilename ? imageFilename : "image.jpeg"
       });
     }
+
   }
 
   async _createFile() {
@@ -235,6 +236,16 @@ class FileBrowser extends Component {
     }
   }
 
+  async _openFile(file) {
+    console.log("openeing", file);
+
+    try {
+      await Linking.openURL(file.uri);
+    } catch (e) {
+      console.warn("failed to open file", file, e);
+    }
+  }
+
   render() {
     if (!this.state.dirData) {
       return <View><ActivityIndicator /></View>
@@ -250,6 +261,8 @@ class FileBrowser extends Component {
 
           {
             files.map((file) => {
+              console.log("file:", file);
+
               return <View style={{flexDirection: 'row', marginBottom: 8}} key={file.name}>
                 {
                   file.isDirectory ?
@@ -257,12 +270,25 @@ class FileBrowser extends Component {
                       <View style={{flexDirection: 'row', flex: 1}}>
                         <Text style={{fontSize: 14, marginRight: 4, color: 'grey'}}>dir: </Text>
                         <Text style={{fontSize: 14, marginRight: 4, color: 'blue'}}>{file.name}</Text>
+
+                        {
+                          file.uri ? <TouchableOpacity onPress={() => this._openFile(file)}>
+                              <Text style={{fontSize: 18, marginRight: 4, fontWeight: "800"}}>→</Text>
+                            </TouchableOpacity> : null
+                        }
+
                       </View>
                     </TouchableOpacity> :
 
                     <View style={{flexDirection: 'row'}}>
                       {<Text style={{fontSize: 14, marginRight: 4}}>{file.name}</Text>}
                       <Text style={{fontSize: 10, marginRight: 4}}>{file.size / 1024}kb</Text>
+
+                      {
+                        file.uri ? <TouchableOpacity onPress={() => this._openFile(file)}>
+                            <Text style={{fontSize: 18, marginRight: 4, fontWeight: "800"}}>→</Text>
+                          </TouchableOpacity> : null
+                      }
                     </View>
                 }
               </View>
